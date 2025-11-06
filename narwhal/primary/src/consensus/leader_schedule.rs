@@ -235,7 +235,7 @@ impl LeaderSchedule {
     /// any overrides that need to be performed to the original schedule.
     pub fn leader_certificate<'a>(&self, round: Round, dag: &'a Dag) -> (Authority, Option<&'a Certificate>) {
         // Note: this function is often called with even rounds only. While we do not aim at random selection
-        // yet (see issue https://github.com/MystenLabs/sui/issues/5182), repeated calls to this function
+        // yet (see issue https://github.com/one-chain-labs/onechain/issues/5182), repeated calls to this function
         // should still pick from the whole roster of leaders.
         let leader = self.leader(round);
 

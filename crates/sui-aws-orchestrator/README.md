@@ -92,7 +92,7 @@ needing more instances down the line.
 
 ## Step 4. Choose protocol
 
-There is support to benchmark either Sui or Narwhal only. To choose which protocol to benchmark, you can set the `Protocol` & `BenchmarkType` field [here](https://github.com/MystenLabs/sui/blob/main/crates/sui-aws-orchestrator/src/main.rs#L33-L34)
+There is support to benchmark either Sui or Narwhal only. To choose which protocol to benchmark, you can set the `Protocol` & `BenchmarkType` field [here](https://github.com/one-chain-labs/onechain/blob/main/crates/sui-aws-orchestrator/src/main.rs#L33-L34)
 
 ```
 // Sui

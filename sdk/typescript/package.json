@@ -116,7 +116,7 @@
 		"generate-schema": "gql.tada generate-output"
 	},
 	"bugs": {
-		"url": "https://github.com/MystenLabs/sui/issues/new"
+		"url": "https://github.com/one-chain-labs/onechain/issues/new"
 	},
 	"publishConfig": {
 		"access": "public"

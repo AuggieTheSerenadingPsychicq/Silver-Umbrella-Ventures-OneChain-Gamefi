@@ -29,7 +29,7 @@
 		"lint:fix": "pnpm run eslint:fix && pnpm run prettier:fix"
 	},
 	"bugs": {
-		"url": "https://github.com/MystenLabs/sui/issues/new"
+		"url": "https://github.com/one-chain-labs/onechain/issues/new"
 	},
 	"publishConfig": {
 		"access": "public"

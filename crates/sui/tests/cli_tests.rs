@@ -341,7 +341,7 @@ async fn test_ptb_publish() -> Result<(), anyhow::Error> {
     Ok(())
 }
 
-// fixing issue https://github.com/MystenLabs/sui/issues/6546
+// fixing issue https://github.com/one-chain-labs/onechain/issues/6546
 #[tokio::test]
 async fn test_regression_6546() -> Result<(), anyhow::Error> {
     let mut test_cluster = TestClusterBuilder::new().build().await;
@@ -1885,7 +1885,7 @@ async fn test_native_transfer() -> Result<(), anyhow::Error> {
 }
 
 #[test]
-// Test for issue https://github.com/MystenLabs/sui/issues/1078
+// Test for issue https://github.com/one-chain-labs/onechain/issues/1078
 fn test_bug_1078() {
     let read = SuiClientCommandResult::Object(SuiObjectResponse::new_with_error(SuiObjectResponseError::NotExists {
         object_id: ObjectID::random(),

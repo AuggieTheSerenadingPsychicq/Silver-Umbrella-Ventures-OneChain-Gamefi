@@ -441,7 +441,7 @@ pub trait HeaderAPI {
 #[builder(pattern = "owned", build_fn(skip))]
 pub struct HeaderV1 {
     // Primary that created the header. Must be the same primary that broadcasted the header.
-    // Validation is at: https://github.com/MystenLabs/sui/blob/f0b80d9eeef44edd9fbe606cee16717622b68651/narwhal/primary/src/primary.rs#L713-L719
+    // Validation is at: https://github.com/one-chain-labs/onechain/blob/f0b80d9eeef44edd9fbe606cee16717622b68651/narwhal/primary/src/primary.rs#L713-L719
     pub author: AuthorityIdentifier,
     pub round: Round,
     pub epoch: Epoch,

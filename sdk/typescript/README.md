@@ -5,7 +5,7 @@ For more complete docs, visit the [Sui TypeScript SDK docs](https://sdk.mystenla
 # Sui TypeScript SDK
 
 This is the Sui TypeScript SDK built on the Sui
-[JSON RPC API](https://github.com/MystenLabs/sui/blob/main/docs/content/references/sui-api.mdx). It
+[JSON RPC API](https://github.com/one-chain-labs/onechain/blob/main/docs/content/references/sui-api.mdx). It
 provides utility classes and functions for applications to sign transactions and interact with the
 Sui network.
 
@@ -17,7 +17,7 @@ upcoming TestNet launch.
 
 The SDK will be published to [npm registry](https://www.npmjs.com/package/hocjs) with the same
 bi-weekly release cycle as the Devnet validators and
-[RPC Server](https://github.com/MystenLabs/sui/blob/main/docs/content/references/sui-api.mdx). To
+[RPC Server](https://github.com/one-chain-labs/onechain/blob/main/docs/content/references/sui-api.mdx). To
 use the SDK in your project, you can do:
 
 ```bash
@@ -38,7 +38,7 @@ npm install hocjs@experimental
 ```
 
 Refer to the
-[JSON RPC](https://github.com/MystenLabs/sui/blob/main/docs/content/references/sui-api.mdx) topic
+[JSON RPC](https://github.com/one-chain-labs/onechain/blob/main/docs/content/references/sui-api.mdx) topic
 for instructions about how to start a local network and local RPC server.
 
 ## Building Locally
