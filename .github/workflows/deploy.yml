@@ -47,7 +47,7 @@ jobs:
           export ONE_RPC_URL='https://rpc-testnet.onelabs.cc:443'
           echo "\$MOVE_PRIVATE_KEY" > one_key.txt
           # Trusting the CLI to detect the suiprivkey format
-          one keytool import-private-key --key-file one_key.txt --env testnet
+          one keytool import --key-file one_key.txt --env testnet
           
           echo "Starting final publish transaction on OneChain Testnet..."
           # The command that gets your package ID
