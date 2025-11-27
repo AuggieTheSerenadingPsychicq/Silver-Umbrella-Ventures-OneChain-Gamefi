@@ -1,4 +1,4 @@
-name: OneChain Official Deployment (FINAL, NO-ARG-BUG)
+name: OneChain Official Deployment (FINAL + FAST)
 
 on:
   workflow_dispatch:
@@ -19,28 +19,37 @@ jobs:
           key: onechain-${{ runner.os }}-${{ github.ref }}
           restore-keys: onechain-${{ runner.os }}-
 
-      - name: Install & Deploy
+      - name: Install & Deploy Contract
         env:
           MOVE_PRIVATE_KEY: ${{ secrets.MOVE_PRIVATE_KEY }}
         run: |
           set -e
 
+          echo "Installing Rust..."
           curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
           export PATH="$HOME/.cargo/bin:$PATH"
 
+          echo "Installing OneChain CLI if missing..."
           if ! command -v one >/dev/null 2>&1; then
             cargo install --locked --git https://github.com/one-chain-labs/onechain.git one_chain --features tracing
             mv ~/.cargo/bin/one_chain ~/.cargo/bin/one
+          else
+            echo "OneChain CLI already cached ✅"
           fi
 
+          echo "Configuring RPC..."
           export ONE_RPC_URL="https://rpc-testnet.onelabs.cc:443"
 
+          echo "Preparing key..."
           echo "$MOVE_PRIVATE_KEY" > /tmp/key.txt
 
-          [ ! -s /tmp/key.txt ] && echo "ERROR: Private key missing" && exit 2
+          if [ ! -s /tmp/key.txt ]; then
+            echo "ERROR: MOVE_PRIVATE_KEY is empty"
+            exit 2
+          fi
 
-          echo "Key byte length:" $(wc -c < /tmp/key.txt)
+          echo "Importing key..."
+          one keytool import "$(cat /tmp/key.txt)" ed25519 --env testnet
 
-          one keytool import -- --file /tmp/key.txt ed25519 --env testnet
-
-          one move publish -- --gas-budget 20000000 --json
+          echo "Publishing contract..."
+          one move publish --gas-budget 20000000 --json
