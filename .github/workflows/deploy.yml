@@ -41,6 +41,6 @@ jobs:
 
           echo "Key byte length:" $(wc -c < /tmp/key.txt)
 
-          one keytool import --file /tmp/key.txt ed25519 --env testnet
+          one keytool import -- --file /tmp/key.txt ed25519 --env testnet
 
-          one move publish --gas-budget 20000000 --json
+          one move publish -- --gas-budget 20000000 --json
