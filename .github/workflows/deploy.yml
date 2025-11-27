@@ -1,42 +1,46 @@
-name: OneChain Official Deployment (Syntactically Perfect)
+name: OneChain Official Deployment (FINAL, NO-ARG-BUG)
 
 on:
   workflow_dispatch:
 
 jobs:
-    deploy:
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v4
+  deploy:
+    runs-on: ubuntu-latest
 
-            # Caching step to ensure speed
-            - name: Cache Rust Dependencies
-              uses: actions/cache@v3
-              with:
-                path: |
-                  ~/.cargo/registry
-                  ~/.cargo/git
-                  target
-                key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-                restore-keys: ${{ runner.os }}-cargo-
+    steps:
+      - uses: actions/checkout@v4
 
-            - name: Install and Deploy Contract
-              env:
-                MOVE_PRIVATE_KEY: ${{ secrets.MOVE_PRIVATE_KEY }}
-              run: |
-                # 1. Install Rust
-                curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-                export PATH="$HOME/.cargo/bin:$PATH"
+      - name: Restore Rust cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo
+            target
+          key: onechain-${{ runner.os }}-${{ github.ref }}
+          restore-keys: onechain-${{ runner.os }}-
 
-                # 2. Install Official OneChain CLI (Your requested command)
-                cargo install --locked --git https://github.com/one-chain-labs/onechain.git one_chain --features tracing
-                mv ~/.cargo/bin/one_chain ~/.cargo/bin/one
+      - name: Install & Deploy
+        env:
+          MOVE_PRIVATE_KEY: ${{ secrets.MOVE_PRIVATE_KEY }}
+        run: |
+          set -e
 
-                # 3. Deployment commands
-                export ONE_RPC_URL='https://rpc-testnet.onelabs.cc:443'
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+          export PATH="$HOME/.cargo/bin:$PATH"
 
-                # FINAL SYNTAX FIX: Key Import
-                one keytool import -- --input-string "\$MOVE_PRIVATE_KEY" --env testnet
+          if ! command -v one >/dev/null 2>&1; then
+            cargo install --locked --git https://github.com/one-chain-labs/onechain.git one_chain --features tracing
+            mv ~/.cargo/bin/one_chain ~/.cargo/bin/one
+          fi
 
-                # 4. Publish Contract
-                one move publish --gas-budget 20000000 --json
+          export ONE_RPC_URL="https://rpc-testnet.onelabs.cc:443"
+
+          echo "$MOVE_PRIVATE_KEY" > /tmp/key.txt
+
+          [ ! -s /tmp/key.txt ] && echo "ERROR: Private key missing" && exit 2
+
+          echo "Key byte length:" $(wc -c < /tmp/key.txt)
+
+          one keytool import --file /tmp/key.txt ed25519 --env testnet
+
+          one move publish --gas-budget 20000000 --json
