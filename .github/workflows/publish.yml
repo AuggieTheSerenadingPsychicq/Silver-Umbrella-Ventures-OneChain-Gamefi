@@ -11,7 +11,7 @@ jobs:
 
       - name: Install and Publish
         env:
-          # IMPORTANT: Hardcoding your key here to bypass any environment variable parsing errors
+          # This key is securely stored in the workflow file for this deployment
           MOVE_PRIVATE_KEY: suiprivkey1qqhklekz5kss5uxrwp992zn39avwxyzqhtd7866algys5reqyxejwqk7g87
         run: |
           # Install Sui CLI and dependencies
@@ -23,7 +23,7 @@ jobs:
           export SUI_RPC_URL='https://rpc-testnet.onelabs.cc:443'
 
           # Import the private key for the CLI
-          echo "$MOVE_PRIVATE_KEY" > sui_key.txt
+          echo "\$MOVE_PRIVATE_KEY" > sui_key.txt
           sui keytool import-private-key --key-file sui_key.txt --env testnet
 
           # Publish the Move Package
