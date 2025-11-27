@@ -1,54 +1,42 @@
-name: OneChain Official Deployment (Final Attempt)
+name: OneChain Official Deployment (Minimalist)
 
 on:
   workflow_dispatch:
 
 jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+    deploy:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
 
-      # --- 1. Install Rust and Cargo ---
-      - name: Install Rust and Cargo
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          override: true
+            # Caching step to ensure speed
+            - name: Cache Rust Dependencies
+              uses: actions/cache@v3
+              with:
+                path: |
+                  ~/.cargo/registry
+                  ~/.cargo/git
+                  target
+                key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+                restore-keys: ${{ runner.os }}-cargo-
 
-      # --- 2. Cache Rust Dependencies (Critical: This will save time on THIS run) ---
-      - name: Cache Rust Dependencies
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: ${{ runner.os }}-cargo-
+            - name: Install and Deploy Contract
+              env:
+                MOVE_PRIVATE_KEY: ${{ secrets.MOVE_PRIVATE_KEY }}
+              run: |
+                # 1. Install Rust
+                curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+                export PATH="$HOME/.cargo/bin:$PATH"
 
-      - name: Install Official CLI and Publish Contract
-        env:
-          # Key is read securely from GitHub Secrets
-          MOVE_PRIVATE_KEY: ${{ secrets.MOVE_PRIVATE_KEY }}
-        run: |
-          # --- 3. Install Runtime Dependencies ---
-          sudo apt-get update
-          sudo apt-get install -y curl bash
+                # 2. Install Official OneChain CLI
+                cargo install --locked --git https://github.com/one-chain-labs/onechain.git one_chain --features tracing
+                mv ~/.cargo/bin/one_chain ~/.cargo/bin/one
 
-          # --- 4. Install Official OneChain CLI (Relying on cache to be fast) ---
-          echo "Installing Official OneChain CLI (Using cache for speed)..."
-          # This should now be MUCH faster as dependencies should be cached
-          cargo install --locked --git https://github.com/one-chain-labs/onechain.git one_chain --features tracing
-          # Create the 'one' alias as per the documentation
-          mv ~/.cargo/bin/one_chain ~/.cargo/bin/one
-          
-          # --- 5. Prepare Key and Run Deployment ---
-          export ONE_RPC_URL='https://rpc-testnet.onelabs.cc:443'
-          echo "\$MOVE_PRIVATE_KEY" > one_key.txt
-          # Trusting the CLI to detect the suiprivkey format
-          one keytool import --key-file one_key.txt --env testnet
-          
-          echo "Starting final publish transaction on OneChain Testnet..."
-          # The command that gets your package ID
-          one move publish --gas-budget 20000000 --json
+                # 3. Deployment commands
+                export ONE_RPC_URL='https://rpc-testnet.onelabs.cc:443'
+
+                # FINAL SYNTAX FIX: Pass key directly as input string
+                one keytool import --input-string "\$MOVE_PRIVATE_KEY" --env testnet
+
+                # 4. Publish Contract
+                one move publish --gas-budget 20000000 --json
