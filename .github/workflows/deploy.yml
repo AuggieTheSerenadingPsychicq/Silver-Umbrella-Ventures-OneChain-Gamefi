@@ -1,4 +1,4 @@
-name: OneChain Official Deployment (Minimalist)
+name: OneChain Official Deployment (Syntactically Perfect)
 
 on:
   workflow_dispatch:
@@ -28,15 +28,15 @@ jobs:
                 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
                 export PATH="$HOME/.cargo/bin:$PATH"
 
-                # 2. Install Official OneChain CLI
+                # 2. Install Official OneChain CLI (Your requested command)
                 cargo install --locked --git https://github.com/one-chain-labs/onechain.git one_chain --features tracing
                 mv ~/.cargo/bin/one_chain ~/.cargo/bin/one
 
                 # 3. Deployment commands
                 export ONE_RPC_URL='https://rpc-testnet.onelabs.cc:443'
 
-                # FINAL SYNTAX FIX: Pass key directly as input string
-                one keytool import --input-string "\$MOVE_PRIVATE_KEY" --env testnet
+                # FINAL SYNTAX FIX: Key Import
+                one keytool import -- --input-string "\$MOVE_PRIVATE_KEY" --env testnet
 
                 # 4. Publish Contract
                 one move publish --gas-budget 20000000 --json
