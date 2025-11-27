@@ -29,3 +29,4 @@ jobs:
           # Publish the Move Package
           echo "Starting final publish transaction on OneChain Testnet..."
           sui move publish --gas-budget 20000000 --json
+          
