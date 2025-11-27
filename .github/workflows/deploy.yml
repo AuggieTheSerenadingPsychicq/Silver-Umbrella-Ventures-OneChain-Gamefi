@@ -1,0 +1,44 @@
+name: OneChain Official Deployment
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # OneChain CLI requires Rust/Cargo to build from source
+      - name: Install Rust and Cargo
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+
+      - name: Install Official CLI and Publish Contract
+        env:
+          # Key is now read securely from GitHub Secrets
+          MOVE_PRIVATE_KEY: ${{ secrets.MOVE_PRIVATE_KEY }}
+        run: |
+          # --- 1. Install Dependencies ---
+          sudo apt-get update
+          sudo apt-get install -y curl bash
+
+          # --- 2. Install Official OneChain CLI ---
+          echo "Installing Official OneChain CLI..."
+          # Install the tool from source using the official repo and features
+          cargo install --locked --git https://github.com/one-chain-labs/onechain.git one_chain --features tracing
+          # Create the 'one' alias as per the documentation
+          mv ~/.cargo/bin/one_chain ~/.cargo/bin/one
+
+          # --- 3. Prepare Key and Run Deployment ---
+          export ONE_RPC_URL='https://rpc-testnet.onelabs.cc:443'
+          # Write the key to a temporary file
+          echo "\$MOVE_PRIVATE_KEY" > one_key.txt
+          # Import the key using the official keytool command
+          one keytool import-private-key --key-file one_key.txt --env testnet
+
+          echo "Starting final publish transaction on OneChain Testnet..."
+          # Use the official one move publish command with JSON output
+          one move publish --gas-budget 20000000 --json
