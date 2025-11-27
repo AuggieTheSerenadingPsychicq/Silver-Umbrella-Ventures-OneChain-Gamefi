@@ -15,7 +15,7 @@ jobs:
         env:
           # Key is read securely from GitHub Secrets
           MOVE_PRIVATE_KEY: ${{ secrets.MOVE_PRIVATE_KEY }}
-        run: |
+        run:  |
           # --- 1. Install Dependencies ---
           sudo apt-get update
           sudo apt-get install -y curl bash
