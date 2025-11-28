@@ -49,8 +49,8 @@ jobs:
           fi
 
           echo "Importing key..."
-          # FIX: Remove the --env flag since ONE_RPC_URL already specifies testnet
           one keytool import "$(cat /tmp/key.txt)" ed25519
 
           echo "Publishing contract..."
-          one move publish --gas-budget 20000000 --json
+          # FIX: Changed from 'one move publish' to 'one client publish'
+          one client publish --gas-budget 20000000 --json
