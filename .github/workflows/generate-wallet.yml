@@ -1,0 +1,19 @@
+name: Generate OneChain Wallet
+
+on:
+  workflow_dispatch:
+
+jobs:
+  wallet:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Rust + OneChain
+        run: |
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+          export PATH="$HOME/.cargo/bin:$PATH"
+          cargo install --locked --git https://github.com/one-chain-labs/onechain.git one_chain --features tracing
+          mv ~/.cargo/bin/one_chain ~/.cargo/bin/one
+
+      - name: Generate Wallet
+        run: |
+          one keytool generate
