@@ -16,4 +16,4 @@ jobs:
 
       - name: Generate Wallet (24 words)
         run: |
-          one keytool generate ed25519 "" 24
+          one keytool generate ed25519 "m/44'/784'/0'/0'/0'" 24
