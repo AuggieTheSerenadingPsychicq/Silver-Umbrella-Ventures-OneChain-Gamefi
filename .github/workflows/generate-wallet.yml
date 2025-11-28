@@ -16,4 +16,4 @@ jobs:
 
       - name: Generate Wallet
         run: |
-          one keytool generate ed25519 0 24
+          one keytool generate ed25519 24
