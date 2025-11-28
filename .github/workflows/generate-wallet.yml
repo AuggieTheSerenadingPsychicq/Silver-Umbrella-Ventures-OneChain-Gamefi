@@ -14,6 +14,6 @@ jobs:
           cargo install --locked --git https://github.com/one-chain-labs/onechain.git one_chain --features tracing
           mv ~/.cargo/bin/one_chain ~/.cargo/bin/one
 
-      - name: Generate Wallet
+      - name: Generate Wallet (24 words)
         run: |
-          one keytool generate ed25519 24
+          one keytool generate ed25519 "" 24
