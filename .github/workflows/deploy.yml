@@ -41,17 +41,21 @@ jobs:
           fi
 
           echo "Creating client config..."
-          mkdir -p ~/.one/one_config
-          cat > ~/.one/one_config/client.yaml <<EOF
-activeEnv: testnet
-envs:
-  testnet:
-    rpc: https://rpc-testnet.onelabs.cc:443
-    ws:  wss://rpc-testnet.onelabs.cc/websocket
-EOF
+          mkdir -p "$HOME/.one/one_config"
+          CONFIG_PATH="$HOME/.one/one_config/client.yaml"
+          printf '%s\n' \
+            "activeEnv: testnet" \
+            "envs:" \
+            "  testnet:" \
+            "    rpc: https://rpc-testnet.onelabs.cc:443" \
+            "    ws:  wss://rpc-testnet.onelabs.cc/websocket" \
+            > "$CONFIG_PATH"
+
+          echo "Client config content:"
+          cat "$CONFIG_PATH"
 
           echo "Importing wallet..."
-          printf "%s" "$MOVE_PRIVATE_KEY" > /tmp/mnemonic.txt
+          printf '%s' "$MOVE_PRIVATE_KEY" > /tmp/mnemonic.txt
           one keytool import "$(cat /tmp/mnemonic.txt)" ed25519
 
           echo "Publishing package..."
