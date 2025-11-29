@@ -1,4 +1,4 @@
-name: OneChain Official Deployment (Final)
+name: OneChain Deployment (FINAL WORKING)
 
 on:
   workflow_dispatch:
@@ -6,70 +6,70 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
 
-      # --- 1. Fix Client Configuration (Fixes 'client.yaml not found' error) ---
-      - name: Inject OneChain Client Config
-        run: |
-          # Create the necessary configuration directory
-          mkdir -p $HOME/.one/one_config
-          # Create the client.yaml file with Testnet details and your address
-          cat > $HOME/.one/one_config/client.yaml <<EOF
-          ---
-          keystore:
-            InFile: "$HOME/.one/one_config/one.keystore"
-          envs:
-            testnet:
-              rpc: "https://rpc-testnet.onelabs.cc:443"
-              ws: "ws://rpc-testnet.onelabs.cc:8080"
-              alias: "testnet"
-          active_env: "testnet"
-          active_address: "0x52707a538ec1c86c8ec05761babea64163252274546f6adc0853dc2ea5b072d7"
-          EOF
-
-      # --- 2. Install Rust and Cache (For Speed and Compatibility) ---
-      - name: Install Rust and Cache
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          override: true
-      
-      - name: Cache Rust Dependencies
+      - name: Restore Rust cache
         uses: actions/cache@v3
         with:
           path: |
-            ~/.cargo/registry
-            ~/.cargo/git
+            ~/.cargo
             target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: ${{ runner.os }}-cargo-
+          key: onechain-${{ runner.os }}-${{ github.ref }}
+          restore-keys: onechain-${{ runner.os }}-
 
-      # --- 3. Install Official CLI and Publish Contract ---
-      - name: Install Official CLI and Publish Contract
+      - name: Install OneChain & Deploy
         env:
-          # Key is read securely from GitHub Secrets
           MOVE_PRIVATE_KEY: ${{ secrets.MOVE_PRIVATE_KEY }}
         run: |
-          # Install CLI dependencies
-          sudo apt-get update
-          sudo apt-get install -y curl bash
+          set -e
 
-          # Install Official OneChain CLI
-          echo "Installing Official OneChain CLI..."
-          cargo install --locked --git https://github.com/one-chain-labs/onechain.git one_chain --features tracing
-          mv ~/.cargo/bin/one_chain ~/.cargo/bin/one
+          echo "Installing Rust..."
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+          export PATH="$HOME/.cargo/bin:$PATH"
 
-          # --- 4. Deployment Commands (Fixed Syntax) ---
-          
-          # Set the RPC URL
-          export ONE_RPC_URL='https://rpc-testnet.onelabs.cc:443'
-          
-          # Import the private key: Uses positional arguments and the correct scheme (Fixes 'unrecognized subcommand' and 'invalid value' errors)
-          # The MOVE_PRIVATE_KEY secret holds the suiprivkey... string.
-          one keytool import "\$MOVE_PRIVATE_KEY" ed25519
+          echo "Installing OneChain CLI..."
+          if ! command -v one >/dev/null 2>&1; then
+            cargo install --locked --git https://github.com/one-chain-labs/onechain.git one_chain --features tracing
+            mv ~/.cargo/bin/one_chain ~/.cargo/bin/one
+          fi
 
-          echo "Starting final publish transaction on OneChain Testnet..."
-          # Publish the package using the correct command sequence
-          one move build --path .
-          one client publish --path . --gas-budget 20000000 --json
+          echo "Checking mnemonic injection..."
+          if [ -z "$MOVE_PRIVATE_KEY" ]; then
+            echo "ERROR: MOVE_PRIVATE_KEY is empty (secret not injected)"
+            exit 1
+          fi
+
+          echo "Mnemonic length:" ${#MOVE_PRIVATE_KEY}
+          echo "Word count:" $(echo "$MOVE_PRIVATE_KEY" | wc -w)
+
+          echo "Preparing wallet file..."
+          printf "%s" "$MOVE_PRIVATE_KEY" > /tmp/mnemonic.txt
+
+          echo "Importing wallet..."
+          one keytool import "$(cat /tmp/mnemonic.txt)" ed25519
+
+          echo "Creating client.yaml..."
+          mkdir -p ~/.one/one_config
+          cat > ~/.one/one_config/client.yaml <<EOF
+activeEnv: testnet
+envs:
+  testnet:
+    rpc: https://rpc-testnet.onelabs.cc:443
+    ws:  wss://rpc-testnet.onelabs.cc/websocket
+EOF
+
+          cat ~/.one/one_config/client.yaml
+
+          echo "Publishing contract..."
+          OUT=$(one client publish --gas-budget 20000000 --json .)
+
+          echo "$OUT"
+
+          PACKAGE_ID=$(echo "$OUT" | sed -n 's/.*"packageId":"\([^"]*\)".*/\1/p' | head -n 1)
+
+          echo "=============================="
+          echo "PACKAGE ID:"
+          echo "$PACKAGE_ID"
+          echo "=============================="
