@@ -55,8 +55,12 @@ jobs:
           printf '%s' "$MOVE_PRIVATE_KEY" > /tmp/mnemonic.txt
           one keytool import "$(cat /tmp/mnemonic.txt)" ed25519
 
-          echo "Deploying MVP package: transfer-to-object"
-          cd examples/move/transfer-to-object
+          echo "Deploying Move package: transfer-to-object/common"
+          cd examples/move/transfer-to-object/common
+
+          echo "Checking Move project..."
+          ls
+          cat Move.toml
 
           echo "Publishing package..."
           OUT=$(one client publish --gas-budget 20000000 --json)
