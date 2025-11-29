@@ -7,4 +7,4 @@ edition = "2024.beta"
 One = { local = "../../../../crates/sui-framework/packages/one-framework" }
 
 [addresses]
-common = "0x0"
+common = "0x25726c350b62a0ae218ae3631053a8dac72642e68ad09b046ab39eab634cd8f2"
