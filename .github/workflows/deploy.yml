@@ -1,4 +1,4 @@
-name: OneChain Deployment
+name: OneChain Deployment (MVP)
 
 on:
   workflow_dispatch:
@@ -34,39 +34,29 @@ jobs:
             mv ~/.cargo/bin/one_chain ~/.cargo/bin/one
           fi
 
-          echo "Checking secret presence..."
+          echo "Checking secret..."
           if [ -z "$MOVE_PRIVATE_KEY" ]; then
             echo "ERROR: MOVE_PRIVATE_KEY secret is missing"
             exit 1
           fi
 
-          echo "Creating client config..."
+          echo "Creating client.yaml..."
           mkdir -p "$HOME/.one/one_config"
-          CONFIG_PATH="$HOME/.one/one_config/client.yaml"
+          CONFIG="$HOME/.one/one_config/client.yaml"
           printf '%s\n' \
             "activeEnv: testnet" \
             "envs:" \
             "  testnet:" \
             "    rpc: https://rpc-testnet.onelabs.cc:443" \
             "    ws:  wss://rpc-testnet.onelabs.cc/websocket" \
-            > "$CONFIG_PATH"
+            > "$CONFIG"
 
           echo "Importing wallet..."
           printf '%s' "$MOVE_PRIVATE_KEY" > /tmp/mnemonic.txt
           one keytool import "$(cat /tmp/mnemonic.txt)" ed25519
 
-          echo "Locating Move.toml..."
-          MOVE_FILE=$(find . -name Move.toml | head -n 1)
-
-          if [ -z "$MOVE_FILE" ]; then
-            echo "ERROR: No Move.toml found in repository."
-            exit 1
-          fi
-
-          MOVE_DIR=$(dirname "$MOVE_FILE")
-          echo "Deploying from: $MOVE_DIR"
-
-          cd "$MOVE_DIR"
+          echo "Deploying MVP package: first-package"
+          cd examples/move/first-package
 
           echo "Publishing package..."
           OUT=$(one client publish --gas-budget 20000000 --json)
