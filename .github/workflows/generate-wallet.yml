@@ -1,4 +1,4 @@
-name: Generate OneChain Wallet
+name: Generate OneChain Wallet (Native)
 
 on:
   workflow_dispatch:
@@ -8,14 +8,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Install Rust + OneChain CLI
+      - name: Install Rust
         run: |
           set -e
           curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
           export PATH="$HOME/.cargo/bin:$PATH"
+
+      - name: Install OneChain CLI
+        run: |
           cargo install --locked --git https://github.com/one-chain-labs/onechain.git one_chain --features tracing
           mv ~/.cargo/bin/one_chain ~/.cargo/bin/one
 
-      - name: Generate Wallet (default word length)
+      - name: Generate Wallet (OneChain native)
         run: |
           one keytool generate ed25519 "m/44'/784'/0'/0'/0'"
