@@ -1,10 +1,67 @@
-name: OneChain Test
+name: OneChain Deployment
 
 on:
   workflow_dispatch:
 
 jobs:
-  test:
+  deploy:
     runs-on: ubuntu-latest
+
     steps:
-      - run: echo "GitHub detected this workflow"
+      - uses: actions/checkout@v4
+
+      - name: Cache Rust
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo
+            target
+          key: onechain-${{ runner.os }}
+
+      - name: Install & Deploy
+        env:
+          MOVE_PRIVATE_KEY: ${{ secrets.MOVE_PRIVATE_KEY }}
+        run: |
+          set -e
+
+          echo "Installing Rust..."
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+          export PATH="$HOME/.cargo/bin:$PATH"
+
+          echo "Installing OneChain CLI..."
+          if ! command -v one >/dev/null 2>&1; then
+            cargo install --locked --git https://github.com/one-chain-labs/onechain.git one_chain --features tracing
+            mv ~/.cargo/bin/one_chain ~/.cargo/bin/one
+          fi
+
+          echo "Checking secret presence..."
+          if [ -z "$MOVE_PRIVATE_KEY" ]; then
+            echo "ERROR: MOVE_PRIVATE_KEY secret is missing"
+            exit 1
+          fi
+
+          echo "Creating client config..."
+          mkdir -p ~/.one/one_config
+          cat > ~/.one/one_config/client.yaml <<EOF
+activeEnv: testnet
+envs:
+  testnet:
+    rpc: https://rpc-testnet.onelabs.cc:443
+    ws:  wss://rpc-testnet.onelabs.cc/websocket
+EOF
+
+          echo "Importing wallet..."
+          printf "%s" "$MOVE_PRIVATE_KEY" > /tmp/mnemonic.txt
+          one keytool import "$(cat /tmp/mnemonic.txt)" ed25519
+
+          echo "Publishing package..."
+          OUT=$(one client publish --gas-budget 20000000 --json .)
+
+          echo "$OUT"
+
+          PACKAGE_ID=$(echo "$OUT" | sed -n 's/.*"packageId":"\([^"]*\)".*/\1/p' | head -n 1)
+
+          echo "=============================="
+          echo "PACKAGE ID:"
+          echo "$PACKAGE_ID"
+          echo "=============================="
