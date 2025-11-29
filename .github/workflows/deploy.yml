@@ -1,75 +1,10 @@
-name: OneChain Deployment (FINAL WORKING)
+name: OneChain Test
 
 on:
   workflow_dispatch:
 
 jobs:
-  deploy:
+  test:
     runs-on: ubuntu-latest
-
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Restore Rust cache
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cargo
-            target
-          key: onechain-${{ runner.os }}-${{ github.ref }}
-          restore-keys: onechain-${{ runner.os }}-
-
-      - name: Install OneChain & Deploy
-        env:
-          MOVE_PRIVATE_KEY: ${{ secrets.MOVE_PRIVATE_KEY }}
-        run: |
-          set -e
-
-          echo "Installing Rust..."
-          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-          export PATH="$HOME/.cargo/bin:$PATH"
-
-          echo "Installing OneChain CLI..."
-          if ! command -v one >/dev/null 2>&1; then
-            cargo install --locked --git https://github.com/one-chain-labs/onechain.git one_chain --features tracing
-            mv ~/.cargo/bin/one_chain ~/.cargo/bin/one
-          fi
-
-          echo "Checking mnemonic injection..."
-          if [ -z "$MOVE_PRIVATE_KEY" ]; then
-            echo "ERROR: MOVE_PRIVATE_KEY is empty (secret not injected)"
-            exit 1
-          fi
-
-          echo "Mnemonic length:" ${#MOVE_PRIVATE_KEY}
-          echo "Word count:" $(echo "$MOVE_PRIVATE_KEY" | wc -w)
-
-          echo "Preparing wallet file..."
-          printf "%s" "$MOVE_PRIVATE_KEY" > /tmp/mnemonic.txt
-
-          echo "Importing wallet..."
-          one keytool import "$(cat /tmp/mnemonic.txt)" ed25519
-
-          echo "Creating client.yaml..."
-          mkdir -p ~/.one/one_config
-          cat > ~/.one/one_config/client.yaml <<EOF
-activeEnv: testnet
-envs:
-  testnet:
-    rpc: https://rpc-testnet.onelabs.cc:443
-    ws:  wss://rpc-testnet.onelabs.cc/websocket
-EOF
-
-          cat ~/.one/one_config/client.yaml
-
-          echo "Publishing contract..."
-          OUT=$(one client publish --gas-budget 20000000 --json .)
-
-          echo "$OUT"
-
-          PACKAGE_ID=$(echo "$OUT" | sed -n 's/.*"packageId":"\([^"]*\)".*/\1/p' | head -n 1)
-
-          echo "=============================="
-          echo "PACKAGE ID:"
-          echo "$PACKAGE_ID"
-          echo "=============================="
+      - run: echo "GitHub detected this workflow"
