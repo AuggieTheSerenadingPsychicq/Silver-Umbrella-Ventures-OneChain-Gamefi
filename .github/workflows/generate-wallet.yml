@@ -6,14 +6,16 @@ on:
 jobs:
   wallet:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Install Rust + OneChain
+      - name: Install Rust + OneChain CLI
         run: |
+          set -e
           curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
           export PATH="$HOME/.cargo/bin:$PATH"
           cargo install --locked --git https://github.com/one-chain-labs/onechain.git one_chain --features tracing
           mv ~/.cargo/bin/one_chain ~/.cargo/bin/one
 
-      - name: Generate Wallet (24 words)
+      - name: Generate Wallet (default word length)
         run: |
-          one keytool generate ed25519 "m/44'/784'/0'/0'/0'" 24
+          one keytool generate ed25519 "m/44'/784'/0'/0'/0'"
