@@ -51,16 +51,25 @@ jobs:
             "    ws:  wss://rpc-testnet.onelabs.cc/websocket" \
             > "$CONFIG_PATH"
 
-          echo "Client config content:"
-          cat "$CONFIG_PATH"
-
           echo "Importing wallet..."
           printf '%s' "$MOVE_PRIVATE_KEY" > /tmp/mnemonic.txt
           one keytool import "$(cat /tmp/mnemonic.txt)" ed25519
 
-          echo "Publishing first-package..."
-          cd examples/move/first-package
-          OUT=$(one client publish --gas-budget 20000000 --json .)
+          echo "Locating Move.toml..."
+          MOVE_FILE=$(find . -name Move.toml | head -n 1)
+
+          if [ -z "$MOVE_FILE" ]; then
+            echo "ERROR: No Move.toml found in repository."
+            exit 1
+          fi
+
+          MOVE_DIR=$(dirname "$MOVE_FILE")
+          echo "Deploying from: $MOVE_DIR"
+
+          cd "$MOVE_DIR"
+
+          echo "Publishing package..."
+          OUT=$(one client publish --gas-budget 20000000 --json)
 
           echo "$OUT"
 
